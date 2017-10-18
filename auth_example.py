@@ -30,7 +30,8 @@ def index():
     """
     if not session.get('is_authenticated'):
         return redirect(url_for('login'))
-    return(str(session.get('username')) + ', you are logged in.')
+    logout_uri = url_for('logout', _external=True)
+    return(str(session.get('username')) + ', you are logged in. <a href="'+logout_uri+'">Logout now.</a>')
 
 @app.route("/login")
 def login():
