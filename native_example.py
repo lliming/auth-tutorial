@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import globus_sdk
+import globus_sdk,json
 
 CLIENT_ID = '02a65a67-d996-4765-85b9-9522fb410d14'
 
@@ -8,7 +8,7 @@ client = globus_sdk.NativeAppAuthClient(CLIENT_ID)
 client.oauth2_start_flow()
 
 authorize_url = client.oauth2_get_authorize_url()
-print('Please go to this URL and login: {0}'.format(authorize_url))
+print('Please go to this URL and login: {0}\n'.format(authorize_url))
 
 # this is to work on Python2 and Python3 -- you can just use raw_input() or
 # input() for your specific version
@@ -27,5 +27,5 @@ TRANSFER_TOKEN = globus_transfer_data['access_token']
 # Let the user know that he/she is authenticated
 ids = token_response.decode_id_token(client)
 
-print("\n\nHere's what I know about you:\n\n")
-print(str(ids))
+print("\n\nHere's what I know about you:\n")
+print(json.dumps(ids,indent=3))
