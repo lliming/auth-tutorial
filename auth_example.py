@@ -10,7 +10,7 @@ from flask import Flask, url_for, session, redirect, request
 import globus_sdk
 
 app = Flask(__name__)
-app.config.from_pyfile('example_app.conf')
+app.config.from_pyfile('auth_example.conf')
 
 # actually run the app if this is called as a script
 if __name__ == '__main__':
