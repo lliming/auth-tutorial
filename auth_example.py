@@ -8,6 +8,7 @@ Created on Tue Oct 17 16:44:23 2017
 
 from flask import Flask, url_for, session, redirect, request
 import globus_sdk
+import json
 
 app = Flask(__name__)
 app.config.from_pyfile('auth_example.conf')
@@ -26,7 +27,17 @@ def index():
     if not session.get('is_authenticated'):
         return redirect(url_for('login'))
     logout_uri = url_for('logout', _external=True)
-    return(str(session.get('username')) + ', you are logged in. <a href="'+logout_uri+'">Logout now.</a>')
+    auth_token = str(session.get('tokens')['auth.globus.org']['access_token'])
+    ac = globus_sdk.AuthClient(authorizer=globus_sdk.AccessTokenAuthorizer(auth_token))
+    myoidc = session.get('id_token')
+    myids = ac.get_identities(ids=str(session.get('username'))).data
+    page = '<html><body>\n<p>' + str(session.get('realname')) + ', you are logged in.</p>\n\n'
+    page = page + '<p>Your local username is: ' + str(session.get('username')) + '</p>\n\n'
+    page = page + '<p><a href="'+logout_uri+'">Logout now.</a></p>\n\n'
+    page = page + '<p>Your OIDC identity is:</p>\n<pre>' + json.dumps(myoidc,indent=3) + '</pre>\n\n'
+    page = page + '<p>Your Globus Auth identity is:</p>\n<pre>' + json.dumps(myids,indent=3) + '</pre>\n\n'
+    page = page + '</body></html>'
+    return(page)
 
 @app.route("/login", methods=['GET'])
 def login():
@@ -59,7 +70,9 @@ def login():
         ids = tokens_response.decode_id_token(auth_client)
         session.update(
                 tokens=tokens_response.by_resource_server,
-                username=ids['preferred_username'],
+                id_token=ids,
+                username=ids['sub'],
+                realname=ids['name'],
                 is_authenticated=True
                 )
         return redirect(url_for('index'))
@@ -97,5 +110,5 @@ def logout():
 
 # actually run the app if this is called as a script
 if __name__ == '__main__':
-    app.run(host='0.0.0.0',port=5000,ssl_context=('./keys/server.crt', './keys/server.key'))
+    app.run(host='0.0.0.0',port=5000,debug=True,ssl_context=('./keys/server.crt', './keys/server.key'))
 
