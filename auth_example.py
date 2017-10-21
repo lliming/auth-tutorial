@@ -12,16 +12,11 @@ import globus_sdk
 app = Flask(__name__)
 app.config.from_pyfile('auth_example.conf')
 
-# actually run the app if this is called as a script
-if __name__ == '__main__':
-    print('running')
-    app.run()
-
 def load_app_client():
     return globus_sdk.ConfidentialAppAuthClient(
         app.config['APP_CLIENT_ID'], app.config['APP_CLIENT_SECRET'])
 
-@app.route("/")
+@app.route("/", methods=['GET'])
 def index():
     """
     This could be any page you like, rendered by Flask.
@@ -33,7 +28,7 @@ def index():
     logout_uri = url_for('logout', _external=True)
     return(str(session.get('username')) + ', you are logged in. <a href="'+logout_uri+'">Logout now.</a>')
 
-@app.route("/login")
+@app.route("/login", methods=['GET'])
 def login():
     """
     Login via Globus Auth.
@@ -69,7 +64,7 @@ def login():
                 )
         return redirect(url_for('index'))
 
-@app.route("/logout")
+@app.route("/logout", methods=['GET'])
 def logout():
     """
     - Revoke the tokens with Globus Auth.
@@ -95,8 +90,12 @@ def logout():
         'https://auth.globus.org/v2/web/logout' +
         '?client={}'.format(app.config['APP_CLIENT_ID']) +
         '&redirect_uri={}'.format(redirect_uri) +
-        '&redirect_name=Globus Example App')
+        '&redirect_name=Your Flask App')
 
     # Redirect the user to the Globus Auth logout page
     return redirect(globus_logout_url)
+
+# actually run the app if this is called as a script
+if __name__ == '__main__':
+    app.run(host='0.0.0.0',port=5000,ssl_context=('./keys/server.crt', './keys/server.key'))
 
