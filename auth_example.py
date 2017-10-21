@@ -31,9 +31,13 @@ def index():
     ac = globus_sdk.AuthClient(authorizer=globus_sdk.AccessTokenAuthorizer(auth_token))
     myoidc = session.get('id_token')
     myids = ac.get_identities(ids=str(session.get('username'))).data
+    oidcinfo = ac.oauth2_userinfo()
     page = '<html><body>\n<p>' + str(session.get('realname')) + ', you are logged in.</p>\n\n'
     page = page + '<p>Your local username is: ' + str(session.get('username')) + '</p>\n\n'
     page = page + '<p><a href="'+logout_uri+'">Logout now.</a></p>\n\n'
+    page = page + '<p>OIDC UserInfo says your effective ID is ' + oidcinfo["sub"]
+    page = page + ', your name is ' + oidcinfo["name"]
+    page = page + ', and your email is ' + oidcinfo["email"] + '.</p>\n\n'
     page = page + '<p>Your OIDC identity is:</p>\n<pre>' + json.dumps(myoidc,indent=3) + '</pre>\n\n'
     page = page + '<p>Your Globus Auth identity is:</p>\n<pre>' + json.dumps(myids,indent=3) + '</pre>\n\n'
     page = page + '</body></html>'
