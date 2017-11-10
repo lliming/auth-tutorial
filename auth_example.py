@@ -53,9 +53,11 @@ def index():
     page = page + '<p>OIDC UserInfo says your effective ID is ' + oidcinfo["sub"]
     page = page + ', your name is ' + oidcinfo["name"]
     page = page + ', and your email is ' + oidcinfo["email"] + '.</p>\n\n'
+    page = page + '<pre>' + json.dumps(oidcinfo.data,indent=3) + '</pre>\n\n'
     page = page + '<p>Your OIDC identity is:</p>\n<pre>' + json.dumps(myoidc,indent=3) + '</pre>\n\n'
     page = page + '<p>Your Globus Auth identity is:</p>\n<pre>' + json.dumps(myids,indent=3) + '</pre>\n\n'
-    page = page + '<p>Token introspection tells me:</p>\n<pre>' + json.dumps(ir,indent=3) + '</pre>\n\n'
+    page = page + '<p>Introspecting your Auth API access token tells me:</p>\n<pre>' + json.dumps(ir,indent=3) + '</pre>\n\n'
+    page = page + '<p>The tokens I received are:</p>\n<pre>' + json.dumps(session.get('tokens'),indent=3) + '</pre>\n\n'
     page = page + '</body></html>'
     return(page)
 
@@ -74,7 +76,8 @@ def login():
     redirect_uri = url_for('login', _external=True)
 
     auth_client = load_app_client()
-    auth_client.oauth2_start_flow(redirect_uri)
+    auth_client.oauth2_start_flow(redirect_uri, 
+            requested_scopes='openid email profile urn:globus:auth:scope:auth.globus.org:view_identity_set')
 
     # If there's no "code" query string parameter, we're in this route
     # starting a Globus Auth login flow.
