@@ -27,11 +27,26 @@ def index():
     if not session.get('is_authenticated'):
         return redirect(url_for('login'))
     logout_uri = url_for('logout', _external=True)
+
+    # get the stored access token for the Auth API and use it 
+    # to authorize stuff AS THE AUTHENTICATED USER
     auth_token = str(session.get('tokens')['auth.globus.org']['access_token'])
     ac = globus_sdk.AuthClient(authorizer=globus_sdk.AccessTokenAuthorizer(auth_token))
-    myoidc = session.get('id_token')
+
+    # use Auth API to get more info about the authenticated user
     myids = ac.get_identities(ids=str(session.get('username'))).data
+
+    # use Auth API to get the standard OIDC userinfo fields (like any OIDC client)
     oidcinfo = ac.oauth2_userinfo()
+
+    # get the stored OIDC id_token
+    myoidc = session.get('id_token')
+
+    # authenticate to Auth API AS AN APPLICATION and find out still more information
+    cc = load_app_client()
+    ir = cc.oauth2_token_introspect(auth_token,include='identities_set').data
+
+    # display all this information on the web page
     page = '<html><body>\n<p>' + str(session.get('realname')) + ', you are logged in.</p>\n\n'
     page = page + '<p>Your local username is: ' + str(session.get('username')) + '</p>\n\n'
     page = page + '<p><a href="'+logout_uri+'">Logout now.</a></p>\n\n'
@@ -40,6 +55,7 @@ def index():
     page = page + ', and your email is ' + oidcinfo["email"] + '.</p>\n\n'
     page = page + '<p>Your OIDC identity is:</p>\n<pre>' + json.dumps(myoidc,indent=3) + '</pre>\n\n'
     page = page + '<p>Your Globus Auth identity is:</p>\n<pre>' + json.dumps(myids,indent=3) + '</pre>\n\n'
+    page = page + '<p>Token introspection tells me:</p>\n<pre>' + json.dumps(ir,indent=3) + '</pre>\n\n'
     page = page + '</body></html>'
     return(page)
 
