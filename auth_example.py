@@ -57,7 +57,8 @@ def index():
     page = page + '<p>Your OIDC identity is:</p>\n<pre>' + json.dumps(myoidc,indent=3) + '</pre>\n\n'
     page = page + '<p>Your Globus Auth identity is:</p>\n<pre>' + json.dumps(myids,indent=3) + '</pre>\n\n'
     page = page + '<p>Introspecting your Auth API access token tells me:</p>\n<pre>' + json.dumps(ir,indent=3) + '</pre>\n\n'
-    page = page + '<p>The tokens I received are:</p>\n<pre>' + json.dumps(session.get('tokens'),indent=3) + '</pre>\n\n'
+    # We probably shouldn't display the token, but for debugging purposes, here's how you'd do it...
+    # page = page + '<p>The tokens I received are:</p>\n<pre>' + json.dumps(session.get('tokens'),indent=3) + '</pre>\n\n'
     page = page + '</body></html>'
     return(page)
 
