@@ -3,8 +3,8 @@
 # -- This example shows how to authenticate a user in a Python script
 #    using the Globus Python SDK and what the identity data look like.
 #
-# -- Note that it's less than 20 lines of code, and much of it is just 
-#    printing stuff so you can see what it looks like.
+# -- Note that it's just 32 lines of code, and most of it is printing 
+#    stuff so you can see what it looks like.
 #
 # -- When you run the script, it will generate a URL and print it on 
 #    the command line. The user must open the URL in a Web browser and 
@@ -62,11 +62,16 @@ auth_code = get_input(
 token_response = client.oauth2_exchange_code_for_tokens(auth_code)
 
 # -- Before doing anything else, we'll display the information that
-#    we got when the user authenticated and we traded in his/her code
-#    for tokens. (The token_response was obtained above.)
-ids = token_response.decode_id_token(client)
-print("\n\nHere's what I know about you:\n")
-print(json.dumps(ids,indent=3))
+#    we got when we traded in the code for tokens. The id_token is a 
+#    standard OIDC id_token structure.
+id_token = token_response.decode_id_token(client)
+username=id_token['sub']
+realname=id_token['name']
+page = '\n' + str(realname) + ', you are logged in.\n'
+page = page + 'Your internal username is: ' + str(username) + '\n\n'
+page = page + 'Your OIDC id_token looks like this:\n' 
+page = page + json.dumps(id_token,indent=3) + '\n'
+print(page)
 
 # -- Now, we'll look deeper into the response and find the access_token 
 #    for the Auth API (auth.globus.org).
@@ -81,8 +86,21 @@ ac = globus_sdk.AuthClient(authorizer=globus_sdk.AccessTokenAuthorizer(AUTH_TOKE
 #    authenticated (see above), this will also include info on any
 #    linked identities the user has added in Globus.
 oidcinfo = ac.oauth2_userinfo()
-print("\n\nAnd here's what oauth2_userinfo() returns:\n")
-print(json.dumps(oidcinfo.data,indent=3))
+page = '\nOIDC UserInfo says your effective ID is ' + oidcinfo["sub"] + ',\n'
+page = page + 'your name is ' + oidcinfo["name"]
+page = page + ', and your email is ' + oidcinfo["email"] + '.\n\n'
+page = page + 'Here\'s what oauth2_userinfo() returns:\n' 
+page = page + json.dumps(oidcinfo.data,indent=3) + '\n'
+print(page)
+
+# -- This is the Globus Auth API's get_identities() call. It's a bit
+#    different from OIDC, but has a few useful items in it. We also
+#    are asking for the identity_provider's information. You don't 
+#    need to do that unless you need it for some reason.
+myids = ac.get_identities(ids=str(username),include="identity_provider").data
+page = '\nHere\'s what get_identities() returns:\n' 
+page = page + json.dumps(myids,indent=3) + '\n\n'
+print(page)
 
 # -- That's all, folks.
 
