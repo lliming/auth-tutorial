@@ -1,6 +1,18 @@
 # auth-tutorial
 These are some simple (but thoroughly commented!) examples of using Globus Auth. They were developed for use in Globus Auth tutorials.
 
+These examples require some Python packages to be installed, notably, the Globus SDK. The ``requirements.txt`` file lists them. Use the following commands to set up your environment.
+```
+% virtualenv venv
+% source venv/bin/activate
+% pip install -r requirements.txt
+```
+
+Anytime you start a new command shell and want to run the examples, you can re-create the environment with the following command.
+```
+% source venv/bin/activate
+```
+
 auth_example.py is a simple web application based on the Flask micro-framework that logs you in via Globus Auth.
 * Configure it by editing ``auth_example.conf``. You will need to register an app client with Globus at https://developers.globus.org.
 * You can use the built-in HTTPS server certificate (in the keys subdirectory) or replace with your own. If you use the built-in certificate, your browser will complain about the connection not being secure. Bypass this warning to use the application. (The connection IS secure, it's just that the server you're running can't prove its identity. But you know who it is. ;) )
